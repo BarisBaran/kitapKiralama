@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitaplar - Kitap Kiralama Sistemi</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <h1>Kitap Kiralama Sistemi</h1>
+            <div class="nav-links">
+                <a href="/books">Kitaplar</a>
+                <a href="/my-rentals">Kiralamalarım</a>
+                <button id="logout-btn" class="btn btn-secondary">Çıkış</button>
+            </div>
+        </nav>
+        
+        <div id="error-message" class="error-message" style="display: none;"></div>
+        <div id="success-message" class="success-message" style="display: none;"></div>
+        
+        <h2>Müsait Kitaplar</h2>
+        
+        <div class="books-grid" th:if="${books != null and !books.empty}">
+            <div class="book-card" th:each="book : ${books}">
+                <h3 th:text="${book.baslik}">Kitap Başlığı</h3>
+                <p><strong>Yazar:</strong> <span th:text="${book.yazar}">Yazar</span></p>
+                <p><strong>ISBN:</strong> <span th:text="${book.isbn}">ISBN</span></p>
+                <p><strong>Stok:</strong> <span th:text="${book.stok}">0</span></p>
+                <button class="btn btn-primary rent-btn" th:data-book-id="${book.id}" 
+                        th:disabled="${book.stok == 0}">
+                    <span th:if="${book.stok > 0}">Kirala</span>
+                    <span th:if="${book.stok == 0}">Stokta Yok</span>
+                </button>
+            </div>
+        </div>
+        
+        <div th:if="${books == null or books.empty}" class="no-books">
+            <p>Henüz kitap bulunmamaktadır.</p>
+        </div>
+    </div>
+    
+    <script th:src="@{/js/books.js}"></script>
+</body>
+</html>

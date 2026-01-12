@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiralamalarım - Kitap Kiralama Sistemi</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <h1>Kitap Kiralama Sistemi</h1>
+            <div class="nav-links">
+                <a href="/books">Kitaplar</a>
+                <a href="/my-rentals">Kiralamalarım</a>
+                <button id="logout-btn" class="btn btn-secondary">Çıkış</button>
+            </div>
+        </nav>
+        
+        <div id="error-message" class="error-message" style="display: none;"></div>
+        <div id="success-message" class="success-message" style="display: none;"></div>
+        
+        <h2>Kiralamalarım</h2>
+        
+        <div id="rentals-list" class="rentals-list">
+            <p>Yükleniyor...</p>
+        </div>
+    </div>
+    
+    <script th:src="@{/js/my-rentals.js}"></script>
+</body>
+</html>
