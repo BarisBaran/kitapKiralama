@@ -1,20 +1,12 @@
 pipeline {
     agent any
 
-    tools {
-        maven 'Maven-3.9'
-        jdk 'JDK-17'
-    }
-
-    environment {
-        CHROME_BIN = '/usr/bin/google-chrome'
-        DISPLAY = ':99'
-    }
-
     environment {
         DOCKER_IMAGE = 'kitap-kiralama-app'
         DOCKER_TAG = "${env.BUILD_NUMBER}"
-        REPO_URL = 'https://github.com/YOUR_USERNAME/kitapKiralama.git'
+        REPO_URL = 'https://github.com/BarisBaran/kitapKiralama.git'
+        CHROME_BIN = '/usr/bin/google-chrome'
+        DISPLAY = ':99'
     }
 
     stages {
@@ -82,18 +74,23 @@ pipeline {
             steps {
                 echo '=== 5. Docker image oluşturuluyor ==='
                 script {
-                    dockerImage = docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}")
+                    try {
+                        dockerImage = docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}")
+                    } catch (Exception e) {
+                        echo "Docker plugin kullanılamıyor, docker build komutu kullanılıyor..."
+                        sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
+                    }
                 }
             }
         }
 
         stage('Docker Compose Up') {
             steps {
-                echo '=== 5. Docker container\'lar başlatılıyor ==='
+                echo '=== 6. Docker container\'lar başlatılıyor ==='
                 sh '''
                     docker-compose down || true
                     docker-compose up -d --build
-                    sleep 45
+                    timeout /t 45 /nobreak >nul 2>&1 || sleep 45
                 '''
             }
         }
@@ -119,8 +116,13 @@ pipeline {
                     
                     while (attempt < maxAttempts) {
                         try {
+                            // Windows ve Linux için uyumlu health check
                             def response = sh(
-                                script: 'curl -f http://localhost:8080/api/books || exit 1',
+                                script: '''
+                                    curl -f http://localhost:8080/api/books 2>/dev/null || \
+                                    powershell -Command "try { Invoke-WebRequest -Uri http://localhost:8080/api/books -UseBasicParsing | Out-Null; exit 0 } catch { exit 1 }" || \
+                                    exit 1
+                                ''',
                                 returnStatus: true
                             )
                             
@@ -225,9 +227,13 @@ pipeline {
         }
         cleanup {
             // Cleanup - container'ları durdurma
-            sh '''
-                docker-compose down || true
-            '''
+            script {
+                try {
+                    sh 'docker-compose down || true'
+                } catch (Exception e) {
+                    echo "Cleanup sırasında hata: ${e.getMessage()}"
+                }
+            }
         }
     }
 }
