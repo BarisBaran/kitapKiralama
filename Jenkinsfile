@@ -21,7 +21,10 @@ pipeline {
         stage('Build') {
             steps {
                 echo '=== 2. Kodlar build ediliyor ==='
-                sh 'mvn clean compile -DskipTests'
+                sh '''
+                    chmod +x mvnw || true
+                    ./mvnw clean compile -DskipTests || mvn clean compile -DskipTests
+                '''
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
         }
@@ -29,7 +32,10 @@ pipeline {
         stage('Unit Tests') {
             steps {
                 echo '=== 3. Birim Testleri çalıştırılıyor ==='
-                sh 'mvn test -Dtest=*Test'
+                sh '''
+                    chmod +x mvnw || true
+                    ./mvnw test -Dtest=*Test || mvn test -Dtest=*Test
+                '''
             }
             post {
                 always {
@@ -51,7 +57,10 @@ pipeline {
         stage('Integration Tests') {
             steps {
                 echo '=== 4. Entegrasyon Testleri çalıştırılıyor ==='
-                sh 'mvn verify -Dtest=*IntegrationTest -DfailIfNoTests=false'
+                sh '''
+                    chmod +x mvnw || true
+                    ./mvnw verify -Dtest=*IntegrationTest -DfailIfNoTests=false || mvn verify -Dtest=*IntegrationTest -DfailIfNoTests=false
+                '''
             }
             post {
                 always {
@@ -88,9 +97,9 @@ pipeline {
             steps {
                 echo '=== 6. Docker container\'lar başlatılıyor ==='
                 sh '''
-                    docker-compose down || true
-                    docker-compose up -d --build
-                    timeout /t 45 /nobreak >nul 2>&1 || sleep 45
+                    docker compose down || docker-compose down || true
+                    docker compose up -d --build || docker-compose up -d --build
+                    sleep 45 || timeout /t 45 /nobreak >nul 2>&1
                 '''
             }
         }
@@ -148,7 +157,10 @@ pipeline {
         stage('Selenium Tests - Senaryo 1') {
             steps {
                 echo '=== 6.1. Selenium Test Senaryosu 1: Kullanıcı Giriş ve Kitap Kiralama ==='
-                sh 'mvn test -Dtest=UserRentBookTest -Pselenium || true'
+                sh '''
+                    chmod +x mvnw || true
+                    ./mvnw test -Dtest=UserRentBookTest -Pselenium || mvn test -Dtest=UserRentBookTest -Pselenium || true
+                '''
             }
             post {
                 always {
@@ -160,7 +172,10 @@ pipeline {
         stage('Selenium Tests - Senaryo 2') {
             steps {
                 echo '=== 6.2. Selenium Test Senaryosu 2: Admin Kitap Ekleme ==='
-                sh 'mvn test -Dtest=AdminAddBookTest -Pselenium || true'
+                sh '''
+                    chmod +x mvnw || true
+                    ./mvnw test -Dtest=AdminAddBookTest -Pselenium || mvn test -Dtest=AdminAddBookTest -Pselenium || true
+                '''
             }
             post {
                 always {
@@ -172,7 +187,10 @@ pipeline {
         stage('Selenium Tests - Senaryo 3') {
             steps {
                 echo '=== 6.3. Selenium Test Senaryosu 3: Kullanıcı Kitap İade ==='
-                sh 'mvn test -Dtest=UserReturnBookTest -Pselenium || true'
+                sh '''
+                    chmod +x mvnw || true
+                    ./mvnw test -Dtest=UserReturnBookTest -Pselenium || mvn test -Dtest=UserReturnBookTest -Pselenium || true
+                '''
             }
             post {
                 always {
@@ -229,7 +247,7 @@ pipeline {
             // Cleanup - container'ları durdurma
             script {
                 try {
-                    sh 'docker-compose down || true'
+                    sh 'docker compose down || docker-compose down || true'
                 } catch (Exception e) {
                     echo "Cleanup sırasında hata: ${e.getMessage()}"
                 }
