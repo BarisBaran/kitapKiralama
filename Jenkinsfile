@@ -215,21 +215,24 @@ pipeline {
         stage('Selenium Tests - Senaryo 1') {
             steps {
                 echo '=== 6.1. Selenium Test Senaryosu 1: Kullanıcı Giriş ve Kitap Kiralama ==='
+                echo 'NOT: Selenium testleri opsiyoneldir. Hata olsa bile pipeline devam eder.'
                 script {
-                    try {
-                        sh '''
+                    def testResult = sh(
+                        script: '''
                             if [ -f mvnw ]; then
                                 chmod +x mvnw
-                                ./mvnw test -Dtest=UserRentBookTest -Pselenium -DfailIfNoTests=false || true
+                                ./mvnw test -Dtest=UserRentBookTest -Pselenium -DfailIfNoTests=false 2>&1 || echo "TEST_FAILED"
                             elif command -v mvn &> /dev/null; then
-                                mvn test -Dtest=UserRentBookTest -Pselenium -DfailIfNoTests=false || true
+                                mvn test -Dtest=UserRentBookTest -Pselenium -DfailIfNoTests=false 2>&1 || echo "TEST_FAILED"
                             else
                                 echo "Maven bulunamadı, Selenium testleri atlanıyor..."
+                                echo "TEST_SKIPPED"
                             fi
-                        '''
-                    } catch (Exception e) {
-                        echo "Selenium test hatası (Senaryo 1): ${e.getMessage()}"
-                        // Selenium testlerini fatal yapma
+                        ''',
+                        returnStatus: true
+                    )
+                    if (testResult != 0) {
+                        echo "⚠️ Selenium test başarısız (opsiyonel - pipeline devam ediyor)"
                     }
                 }
             }
@@ -243,20 +246,24 @@ pipeline {
         stage('Selenium Tests - Senaryo 2') {
             steps {
                 echo '=== 6.2. Selenium Test Senaryosu 2: Admin Kitap Ekleme ==='
+                echo 'NOT: Selenium testleri opsiyoneldir. Hata olsa bile pipeline devam eder.'
                 script {
-                    try {
-                        sh '''
+                    def testResult = sh(
+                        script: '''
                             if [ -f mvnw ]; then
                                 chmod +x mvnw
-                                ./mvnw test -Dtest=AdminAddBookTest -Pselenium -DfailIfNoTests=false || true
+                                ./mvnw test -Dtest=AdminAddBookTest -Pselenium -DfailIfNoTests=false 2>&1 || echo "TEST_FAILED"
                             elif command -v mvn &> /dev/null; then
-                                mvn test -Dtest=AdminAddBookTest -Pselenium -DfailIfNoTests=false || true
+                                mvn test -Dtest=AdminAddBookTest -Pselenium -DfailIfNoTests=false 2>&1 || echo "TEST_FAILED"
                             else
                                 echo "Maven bulunamadı, Selenium testleri atlanıyor..."
+                                echo "TEST_SKIPPED"
                             fi
-                        '''
-                    } catch (Exception e) {
-                        echo "Selenium test hatası (Senaryo 2): ${e.getMessage()}"
+                        ''',
+                        returnStatus: true
+                    )
+                    if (testResult != 0) {
+                        echo "⚠️ Selenium test başarısız (opsiyonel - pipeline devam ediyor)"
                     }
                 }
             }
@@ -270,20 +277,24 @@ pipeline {
         stage('Selenium Tests - Senaryo 3') {
             steps {
                 echo '=== 6.3. Selenium Test Senaryosu 3: Kullanıcı Kitap İade ==='
+                echo 'NOT: Selenium testleri opsiyoneldir. Hata olsa bile pipeline devam eder.'
                 script {
-                    try {
-                        sh '''
+                    def testResult = sh(
+                        script: '''
                             if [ -f mvnw ]; then
                                 chmod +x mvnw
-                                ./mvnw test -Dtest=UserReturnBookTest -Pselenium -DfailIfNoTests=false || true
+                                ./mvnw test -Dtest=UserReturnBookTest -Pselenium -DfailIfNoTests=false 2>&1 || echo "TEST_FAILED"
                             elif command -v mvn &> /dev/null; then
-                                mvn test -Dtest=UserReturnBookTest -Pselenium -DfailIfNoTests=false || true
+                                mvn test -Dtest=UserReturnBookTest -Pselenium -DfailIfNoTests=false 2>&1 || echo "TEST_FAILED"
                             else
                                 echo "Maven bulunamadı, Selenium testleri atlanıyor..."
+                                echo "TEST_SKIPPED"
                             fi
-                        '''
-                    } catch (Exception e) {
-                        echo "Selenium test hatası (Senaryo 3): ${e.getMessage()}"
+                        ''',
+                        returnStatus: true
+                    )
+                    if (testResult != 0) {
+                        echo "⚠️ Selenium test başarısız (opsiyonel - pipeline devam ediyor)"
                     }
                 }
             }
