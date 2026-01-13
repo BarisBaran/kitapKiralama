@@ -147,6 +147,29 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-crypto</artifactId>
         </dependency>
+        
+        <!-- Selenium (optional - sadece selenium profile aktifken kullanılır) -->
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>4.15.0</version>
+            <scope>test</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-chrome-driver</artifactId>
+            <version>4.15.0</version>
+            <scope>test</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>io.github.bonigarcia</groupId>
+            <artifactId>webdrivermanager</artifactId>
+            <version>5.6.2</version>
+            <scope>test</scope>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
 
     <build>
@@ -164,15 +187,14 @@
                 </configuration>
             </plugin>
             
-            <!-- Maven Compiler Plugin - Selenium testlerini exclude et -->
+            <!-- Maven Compiler Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
-                    <testExcludes>
-                        <exclude>**/selenium/**/*.java</exclude>
-                    </testExcludes>
+                    <source>17</source>
+                    <target>17</target>
                 </configuration>
             </plugin>
 
@@ -226,24 +248,24 @@
     <profiles>
         <profile>
             <id>selenium</id>
-            <dependencies>
-                <!-- Selenium -->
-                <dependency>
-                    <groupId>org.seleniumhq.selenium</groupId>
-                    <artifactId>selenium-java</artifactId>
-                    <version>4.15.0</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.seleniumhq.selenium</groupId>
-                    <artifactId>selenium-chrome-driver</artifactId>
-                    <version>4.15.0</version>
-                </dependency>
-                <dependency>
-                    <groupId>io.github.bonigarcia</groupId>
-                    <artifactId>webdrivermanager</artifactId>
-                    <version>5.6.2</version>
-                </dependency>
-            </dependencies>
+            <build>
+                <plugins>
+                    <!-- Selenium profile aktifken surefire exclude'u kaldır -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.2.2</version>
+                        <configuration>
+                            <includes>
+                                <include>**/selenium/**/*Test.java</include>
+                            </includes>
+                            <excludes>
+                                <!-- Selenium profile aktifken exclude yok -->
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>
