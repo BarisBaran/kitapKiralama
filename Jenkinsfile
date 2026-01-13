@@ -26,10 +26,10 @@ pipeline {
                             if [ -f mvnw ]; then
                                 chmod +x mvnw
                                 echo "Maven Wrapper kullanılıyor..."
-                                ./mvnw clean compile -DskipTests
+                                ./mvnw clean compile -DskipTests -Dmaven.test.skip=true
                             elif command -v mvn &> /dev/null; then
                                 echo "Maven bulundu, kullanılıyor..."
-                                mvn clean compile -DskipTests
+                                mvn clean compile -DskipTests -Dmaven.test.skip=true
                             else
                                 echo "HATA: Maven Wrapper ve Maven bulunamadı!"
                                 exit 1
@@ -70,13 +70,6 @@ pipeline {
             post {
                 always {
                     junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
-                    publishHTML([
-                        reportName: 'Unit Test Report',
-                        reportDir: 'target/surefire-reports',
-                        reportFiles: 'index.html',
-                        keepAll: true,
-                        allowMissing: true
-                    ])
                 }
             }
         }
@@ -106,13 +99,6 @@ pipeline {
             post {
                 always {
                     junit testResults: 'target/failsafe-reports/*.xml', allowEmptyResults: true
-                    publishHTML([
-                        reportName: 'Integration Test Report',
-                        reportDir: 'target/failsafe-reports',
-                        reportFiles: 'index.html',
-                        keepAll: true,
-                        allowMissing: true
-                    ])
                 }
             }
         }
@@ -304,13 +290,6 @@ pipeline {
             post {
                 always {
                     junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
-                    publishHTML([
-                        reportName: 'Selenium Test Report',
-                        reportDir: 'target/surefire-reports',
-                        reportFiles: 'index.html',
-                        keepAll: true,
-                        allowMissing: true
-                    ])
                 }
                 success {
                     echo '=== Tüm Selenium test senaryoları tamamlandı ==='
