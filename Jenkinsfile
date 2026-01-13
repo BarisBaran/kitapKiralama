@@ -192,8 +192,8 @@ pipeline {
                             // Basit curl veya wget ile health check
                             def response = sh(
                                 script: '''
-                                    curl -f -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/books 2>/dev/null || \
-                                    wget -q -O /dev/null -S http://localhost:8080/api/books 2>&1 | grep -q "200 OK" && echo "200" || echo "000"
+                                    curl -f -s -o /dev/null -w "%{http_code}" http://localhost:9090/api/books 2>/dev/null || \
+                                    wget -q -O /dev/null -S http://localhost:9090/api/books 2>&1 | grep -q "200 OK" && echo "200" || echo "000"
                                 ''',
                                 returnStdout: true
                             ).trim()

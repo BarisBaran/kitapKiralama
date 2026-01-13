@@ -13,7 +13,7 @@ import java.time.Duration;
 public abstract class SeleniumTestBase {
     protected WebDriver driver;
     protected WebDriverWait wait;
-    protected String baseUrl = "http://localhost:8080";
+    protected String baseUrl = "http://localhost:9090";
 
     @BeforeEach
     void setUp() {
