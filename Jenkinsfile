@@ -69,7 +69,7 @@ pipeline {
             }
             post {
                 always {
-                    junit testResultsPattern: 'target/surefire-reports/*.xml', allowEmptyResults: true
+                    junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
                     publishHTML([
                         reportName: 'Unit Test Report',
                         reportDir: 'target/surefire-reports',
@@ -105,7 +105,7 @@ pipeline {
             }
             post {
                 always {
-                    junit testResultsPattern: 'target/failsafe-reports/*.xml', allowEmptyResults: true
+                    junit testResults: 'target/failsafe-reports/*.xml', allowEmptyResults: true
                     publishHTML([
                         reportName: 'Integration Test Report',
                         reportDir: 'target/failsafe-reports',
@@ -249,7 +249,7 @@ pipeline {
             }
             post {
                 always {
-                    junit testResultsPattern: 'target/surefire-reports/*.xml', allowEmptyResults: true
+                    junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
                 }
             }
         }
@@ -276,7 +276,7 @@ pipeline {
             }
             post {
                 always {
-                    junit testResultsPattern: 'target/surefire-reports/*.xml', allowEmptyResults: true
+                    junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
                 }
             }
         }
@@ -303,7 +303,7 @@ pipeline {
             }
             post {
                 always {
-                    junit testResultsPattern: 'target/surefire-reports/*.xml', allowEmptyResults: true
+                    junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
                     publishHTML([
                         reportName: 'Selenium Test Report',
                         reportDir: 'target/surefire-reports',
