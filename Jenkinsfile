@@ -353,19 +353,31 @@ pipeline {
         unstable {
             echo '⚠️ Pipeline tamamlandı ancak bazı uyarılar var!'
         }
-        cleanup {
-            script {
-                try {
-                    echo "Cleanup: Container'lar durduruluyor..."
-                    sh '''
-                        docker compose down -v 2>/dev/null || \
-                        docker-compose down -v 2>/dev/null || \
-                        echo "Docker Compose bulunamadı veya container'lar zaten durdurulmuş"
-                    '''
-                } catch (Exception e) {
-                    echo "Cleanup sırasında hata (önemsiz): ${e.getMessage()}"
+                cleanup {
+                    script {
+                        try {
+                            // Docker Compose'un varlığını kontrol et
+                            def composeExists = sh(
+                                script: 'command -v docker-compose &> /dev/null || docker compose version &> /dev/null && echo "yes" || echo "no"',
+                                returnStdout: true
+                            ).trim()
+                            
+                            if (composeExists == "yes") {
+                                sh '''
+                                    # Container'ları sessizce durdur (hata mesajlarını gizle)
+                                    docker compose down -v > /dev/null 2>&1 || \
+                                    docker-compose down -v > /dev/null 2>&1 || \
+                                    true
+                                '''
+                                echo "✅ Cleanup tamamlandı"
+                            } else {
+                                // Docker Compose yoksa sessizce geç
+                                echo "ℹ️ Docker Compose bulunamadı, cleanup atlandı"
+                            }
+                        } catch (Exception e) {
+                            // Cleanup hatalarını sessizce yok say
+                        }
+                    }
                 }
-            }
-        }
     }
 }
