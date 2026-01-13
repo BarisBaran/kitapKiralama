@@ -79,31 +79,49 @@ pipeline {
                 echo 'NOT: Integration testleri Testcontainers kullanır, Docker gerekir.'
                 script {
                     try {
-                        // Docker erişimini kontrol et
-                        def dockerAccess = sh(
-                            script: 'docker ps > /dev/null 2>&1 && echo "yes" || echo "no"',
+                        // Docker erişimini kontrol et (daha esnek kontrol)
+                        def dockerCheck = sh(
+                            script: '''
+                                if command -v docker &> /dev/null; then
+                                    docker --version > /dev/null 2>&1 && docker ps > /dev/null 2>&1 && echo "yes" || echo "maybe"
+                                else
+                                    echo "no"
+                                fi
+                            ''',
                             returnStdout: true
                         ).trim()
                         
-                        if (dockerAccess == "yes") {
-                            sh '''
-                                if [ -f mvnw ]; then
-                                    chmod +x mvnw
-                                    ./mvnw verify -Dtest=*IntegrationTest -DfailIfNoTests=false || exit 0
-                                elif command -v mvn &> /dev/null; then
-                                    mvn verify -Dtest=*IntegrationTest -DfailIfNoTests=false || exit 0
-                                else
-                                    echo "Maven bulunamadı, testler atlanıyor..."
-                                    exit 0
-                                fi
-                            '''
+                        if (dockerCheck == "yes" || dockerCheck == "maybe") {
+                            echo "Docker bulundu, Integration testleri çalıştırılıyor..."
+                            
+                            def testStatus = sh(
+                                script: '''
+                                    if [ -f mvnw ]; then
+                                        chmod +x mvnw
+                                        ./mvnw verify -Dit.test=**/*IntegrationTest -DfailIfNoTests=false
+                                    elif command -v mvn &> /dev/null; then
+                                        mvn verify -Dit.test=**/*IntegrationTest -DfailIfNoTests=false
+                                    else
+                                        echo "Maven bulunamadı"
+                                        exit 1
+                                    fi
+                                ''',
+                                returnStatus: true
+                            )
+                            
+                            if (testStatus == 0) {
+                                echo "✅ Integration testleri başarıyla tamamlandı"
+                            } else {
+                                echo "⚠️ Integration testleri başarısız oldu (exit code: ${testStatus})"
+                                echo "   Pipeline devam ediyor..."
+                            }
                         } else {
-                            echo "⚠️ Docker erişimi yok, Integration testleri atlanıyor (opsiyonel)"
-                            sh 'exit 0'
+                            echo "ℹ️ Docker bulunamadı, Integration testleri atlanıyor (opsiyonel)"
+                            echo "   Integration testleri Docker gerektirir (Testcontainers)"
                         }
                     } catch (Exception e) {
                         echo "⚠️ Integration test hatası (opsiyonel): ${e.getMessage()}"
-                        // Test hatalarını fatal yapma, pipeline devam eder
+                        echo "   Pipeline devam ediyor..."
                     }
                 }
             }
@@ -119,20 +137,36 @@ pipeline {
                 echo '=== 5. Docker image oluşturuluyor ==='
                 script {
                     try {
-                        // Docker'ın varlığını kontrol et
-                        def dockerExists = sh(
-                            script: 'command -v docker &> /dev/null && echo "yes" || echo "no"',
+                        // Docker'ın varlığını ve çalışabilirliğini kontrol et
+                        def dockerCheck = sh(
+                            script: '''
+                                if command -v docker &> /dev/null; then
+                                    docker --version > /dev/null 2>&1 && echo "yes" || echo "no"
+                                else
+                                    echo "no"
+                                fi
+                            ''',
                             returnStdout: true
                         ).trim()
                         
-                        if (dockerExists == "yes") {
-                            sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
-                            echo "Docker image başarıyla oluşturuldu: ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                        if (dockerCheck == "yes") {
+                            def buildStatus = sh(
+                                script: "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .",
+                                returnStatus: true
+                            )
+                            
+                            if (buildStatus == 0) {
+                                echo "✅ Docker image başarıyla oluşturuldu: ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                            } else {
+                                echo "⚠️ Docker build başarısız oldu (exit code: ${buildStatus}), pipeline devam ediyor..."
+                            }
                         } else {
-                            echo "⚠️ UYARI: Docker bulunamadı, build atlanıyor (opsiyonel)"
+                            echo "ℹ️ Docker bulunamadı veya çalışmıyor, build atlanıyor (opsiyonel)"
+                            echo "   Bu normal olabilir - Docker olmadan da pipeline devam edebilir"
                         }
                     } catch (Exception e) {
                         echo "⚠️ Docker build hatası (opsiyonel): ${e.getMessage()}"
+                        echo "   Pipeline devam ediyor..."
                     }
                 }
             }
@@ -143,26 +177,45 @@ pipeline {
                 echo '=== 6. Docker container\'lar başlatılıyor ==='
                 script {
                     try {
-                        // Docker Compose'un varlığını kontrol et
+                        // Docker ve Docker Compose'un varlığını ve çalışabilirliğini kontrol et
                         def composeExists = sh(
-                            script: 'command -v docker-compose &> /dev/null || docker compose version &> /dev/null && echo "yes" || echo "no"',
+                            script: '''
+                                if command -v docker &> /dev/null && docker --version > /dev/null 2>&1; then
+                                    if command -v docker-compose &> /dev/null || docker compose version &> /dev/null 2>&1; then
+                                        echo "yes"
+                                    else
+                                        echo "no"
+                                    fi
+                                else
+                                    echo "no"
+                                fi
+                            ''',
                             returnStdout: true
                         ).trim()
                         
                         if (composeExists == "yes") {
-                            sh '''
-                                # Önce mevcut container'ları durdur
-                                docker compose down -v 2>/dev/null || docker-compose down -v 2>/dev/null || true
-                                
-                                # Container'ları başlat
-                                docker compose up -d --build 2>/dev/null || docker-compose up -d --build
-                                
-                                # Sistemin hazır olmasını bekle
-                                echo "Sistem başlatılıyor, 45 saniye bekleniyor..."
-                                sleep 45
-                            '''
+                            def composeStatus = sh(
+                                script: '''
+                                    # Önce mevcut container'ları durdur
+                                    docker compose down -v > /dev/null 2>&1 || docker-compose down -v > /dev/null 2>&1 || true
+                                    
+                                    # Container'ları başlat
+                                    docker compose up -d --build > /dev/null 2>&1 || docker-compose up -d --build > /dev/null 2>&1
+                                    echo $?
+                                ''',
+                                returnStdout: true
+                            ).trim()
+                            
+                            if (composeStatus == "0") {
+                                echo "✅ Docker container'lar başlatılıyor, 45 saniye bekleniyor..."
+                                sleep(45)
+                                echo "✅ Docker container'lar başarıyla başlatıldı."
+                            } else {
+                                echo "⚠️ Docker Compose başlatma başarısız oldu (exit code: ${composeStatus}), pipeline devam ediyor..."
+                            }
                         } else {
-                            echo "⚠️ UYARI: Docker Compose bulunamadı, container'lar başlatılamıyor (opsiyonel)"
+                            echo "ℹ️ Docker veya Docker Compose bulunamadı, container'lar başlatılamıyor (opsiyonel)"
+                            echo "   Bu normal olabilir - Docker olmadan da pipeline devam edebilir"
                         }
                     } catch (Exception e) {
                         echo "⚠️ Docker Compose hatası (opsiyonel): ${e.getMessage()}"
