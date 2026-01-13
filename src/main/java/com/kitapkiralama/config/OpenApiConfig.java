@@ -15,7 +15,7 @@ public class OpenApiConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Kitap Kiralama Sistemi API")
+                        .title("Kitap Kiralama Sistemi API1")
                         .version("1.0.0")
                         .description("Yazılım Doğrulama ve Geçerleme (YDG) Projesi - Kitap Kiralama Sistemi REST API Dokümantasyonu")
                         .contact(new Contact()
