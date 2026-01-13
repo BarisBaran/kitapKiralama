@@ -52,9 +52,9 @@ pipeline {
                         sh '''
                             if [ -f mvnw ]; then
                                 chmod +x mvnw
-                                ./mvnw test-compile test -Dtest=*Test -DfailIfNoTests=false
+                                ./mvnw test-compile test -Dtest=*ServiceTest -DfailIfNoTests=false
                             elif command -v mvn &> /dev/null; then
-                                mvn test-compile test -Dtest=*Test -DfailIfNoTests=false
+                                mvn test-compile test -Dtest=*ServiceTest -DfailIfNoTests=false
                             else
                                 echo "Maven bulunamadı, testler atlanıyor..."
                                 exit 0
@@ -76,19 +76,30 @@ pipeline {
         stage('Integration Tests') {
             steps {
                 echo '=== 4. Entegrasyon Testleri çalıştırılıyor ==='
+                echo 'NOT: Integration testleri Testcontainers kullanır, Docker gerekir.'
                 script {
                     try {
-                        sh '''
-                            if [ -f mvnw ]; then
-                                chmod +x mvnw
-                                ./mvnw verify -Dtest=*IntegrationTest -DfailIfNoTests=false
-                            elif command -v mvn &> /dev/null; then
-                                mvn verify -Dtest=*IntegrationTest -DfailIfNoTests=false
-                            else
-                                echo "Maven bulunamadı, testler atlanıyor..."
-                                exit 0
-                            fi
-                        '''
+                        // Docker erişimini kontrol et
+                        def dockerAccess = sh(
+                            script: 'docker ps > /dev/null 2>&1 && echo "yes" || echo "no"',
+                            returnStatus: true
+                        )
+                        
+                        if (dockerAccess == 0) {
+                            sh '''
+                                if [ -f mvnw ]; then
+                                    chmod +x mvnw
+                                    ./mvnw verify -Dtest=*IntegrationTest -DfailIfNoTests=false
+                                elif command -v mvn &> /dev/null; then
+                                    mvn verify -Dtest=*IntegrationTest -DfailIfNoTests=false
+                                else
+                                    echo "Maven bulunamadı, testler atlanıyor..."
+                                    exit 0
+                                fi
+                            '''
+                        } else {
+                            echo "⚠️ Docker erişimi yok, Integration testleri atlanıyor (opsiyonel)"
+                        }
                     } catch (Exception e) {
                         echo "⚠️ Integration test hatası (opsiyonel): ${e.getMessage()}"
                         // Test hatalarını fatal yapma, pipeline devam eder
@@ -214,10 +225,10 @@ pipeline {
                             if [ -f mvnw ]; then
                                 chmod +x mvnw
                                 echo "Selenium testleri derleniyor ve çalıştırılıyor..."
-                                ./mvnw test-compile test -Dtest=UserRentBookTest -Pselenium -DfailIfNoTests=false
+                                ./mvnw test-compile test -Dtest=com.kitapkiralama.selenium.UserRentBookTest -Pselenium -DfailIfNoTests=false -Dsurefire.failIfNoSpecifiedTests=false -Dsurefire.excludes= -Dsurefire.includes=**/selenium/**/*Test.java
                             elif command -v mvn &> /dev/null; then
                                 echo "Selenium testleri derleniyor ve çalıştırılıyor..."
-                                mvn test-compile test -Dtest=UserRentBookTest -Pselenium -DfailIfNoTests=false
+                                mvn test-compile test -Dtest=com.kitapkiralama.selenium.UserRentBookTest -Pselenium -DfailIfNoTests=false -Dsurefire.failIfNoSpecifiedTests=false -Dsurefire.excludes= -Dsurefire.includes=**/selenium/**/*Test.java
                             else
                                 echo "Maven bulunamadı, Selenium testleri atlanıyor..."
                                 exit 0
@@ -245,10 +256,10 @@ pipeline {
                             if [ -f mvnw ]; then
                                 chmod +x mvnw
                                 echo "Selenium testleri derleniyor ve çalıştırılıyor..."
-                                ./mvnw test-compile test -Dtest=AdminAddBookTest -Pselenium -DfailIfNoTests=false
+                                ./mvnw test-compile test -Dtest=com.kitapkiralama.selenium.AdminAddBookTest -Pselenium -DfailIfNoTests=false -Dsurefire.failIfNoSpecifiedTests=false -Dsurefire.excludes= -Dsurefire.includes=**/selenium/**/*Test.java
                             elif command -v mvn &> /dev/null; then
                                 echo "Selenium testleri derleniyor ve çalıştırılıyor..."
-                                mvn test-compile test -Dtest=AdminAddBookTest -Pselenium -DfailIfNoTests=false
+                                mvn test-compile test -Dtest=com.kitapkiralama.selenium.AdminAddBookTest -Pselenium -DfailIfNoTests=false -Dsurefire.failIfNoSpecifiedTests=false -Dsurefire.excludes= -Dsurefire.includes=**/selenium/**/*Test.java
                             else
                                 echo "Maven bulunamadı, Selenium testleri atlanıyor..."
                                 exit 0
@@ -276,10 +287,10 @@ pipeline {
                             if [ -f mvnw ]; then
                                 chmod +x mvnw
                                 echo "Selenium testleri derleniyor ve çalıştırılıyor..."
-                                ./mvnw test-compile test -Dtest=UserReturnBookTest -Pselenium -DfailIfNoTests=false
+                                ./mvnw test-compile test -Dtest=com.kitapkiralama.selenium.UserReturnBookTest -Pselenium -DfailIfNoTests=false -Dsurefire.failIfNoSpecifiedTests=false -Dsurefire.excludes= -Dsurefire.includes=**/selenium/**/*Test.java
                             elif command -v mvn &> /dev/null; then
                                 echo "Selenium testleri derleniyor ve çalıştırılıyor..."
-                                mvn test-compile test -Dtest=UserReturnBookTest -Pselenium -DfailIfNoTests=false
+                                mvn test-compile test -Dtest=com.kitapkiralama.selenium.UserReturnBookTest -Pselenium -DfailIfNoTests=false -Dsurefire.failIfNoSpecifiedTests=false -Dsurefire.excludes= -Dsurefire.includes=**/selenium/**/*Test.java
                             else
                                 echo "Maven bulunamadı, Selenium testleri atlanıyor..."
                                 exit 0
