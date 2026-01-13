@@ -26,10 +26,10 @@ pipeline {
                             if [ -f mvnw ]; then
                                 chmod +x mvnw
                                 echo "Maven Wrapper kullanılıyor..."
-                                ./mvnw clean compile -DskipTests -Dmaven.test.skip=true
+                                ./mvnw clean compile test-compile -DskipTests -Dmaven.test.skip=true
                             elif command -v mvn &> /dev/null; then
                                 echo "Maven bulundu, kullanılıyor..."
-                                mvn clean compile -DskipTests -Dmaven.test.skip=true
+                                mvn clean compile test-compile -DskipTests -Dmaven.test.skip=true
                             else
                                 echo "HATA: Maven Wrapper ve Maven bulunamadı!"
                                 exit 1
@@ -52,9 +52,9 @@ pipeline {
                         sh '''
                             if [ -f mvnw ]; then
                                 chmod +x mvnw
-                                ./mvnw test -Dtest=*Test -DfailIfNoTests=false
+                                ./mvnw test-compile test -Dtest=*Test -DfailIfNoTests=false
                             elif command -v mvn &> /dev/null; then
-                                mvn test -Dtest=*Test -DfailIfNoTests=false
+                                mvn test-compile test -Dtest=*Test -DfailIfNoTests=false
                             else
                                 echo "Maven bulunamadı, testler atlanıyor..."
                                 exit 0
@@ -208,24 +208,24 @@ pipeline {
         stage('Selenium Tests - Senaryo 1') {
             steps {
                 echo '=== 6.1. Selenium Test Senaryosu 1: Kullanıcı Giriş ve Kitap Kiralama ==='
-                echo 'NOT: Selenium testleri opsiyoneldir. Hata olsa bile pipeline devam eder.'
                 script {
-                    def testResult = sh(
-                        script: '''
+                    try {
+                        sh '''
                             if [ -f mvnw ]; then
                                 chmod +x mvnw
-                                ./mvnw test -Dtest=UserRentBookTest -Pselenium -DfailIfNoTests=false 2>&1 || echo "TEST_FAILED"
+                                echo "Selenium testleri derleniyor ve çalıştırılıyor..."
+                                ./mvnw test-compile test -Dtest=UserRentBookTest -Pselenium -DfailIfNoTests=false
                             elif command -v mvn &> /dev/null; then
-                                mvn test -Dtest=UserRentBookTest -Pselenium -DfailIfNoTests=false 2>&1 || echo "TEST_FAILED"
+                                echo "Selenium testleri derleniyor ve çalıştırılıyor..."
+                                mvn test-compile test -Dtest=UserRentBookTest -Pselenium -DfailIfNoTests=false
                             else
                                 echo "Maven bulunamadı, Selenium testleri atlanıyor..."
-                                echo "TEST_SKIPPED"
+                                exit 0
                             fi
-                        ''',
-                        returnStatus: true
-                    )
-                    if (testResult != 0) {
-                        echo "⚠️ Selenium test başarısız (opsiyonel - pipeline devam ediyor)"
+                        '''
+                    } catch (Exception e) {
+                        echo "⚠️ Selenium test hatası (Senaryo 1): ${e.getMessage()}"
+                        echo "Pipeline devam ediyor..."
                     }
                 }
             }
@@ -239,24 +239,24 @@ pipeline {
         stage('Selenium Tests - Senaryo 2') {
             steps {
                 echo '=== 6.2. Selenium Test Senaryosu 2: Admin Kitap Ekleme ==='
-                echo 'NOT: Selenium testleri opsiyoneldir. Hata olsa bile pipeline devam eder.'
                 script {
-                    def testResult = sh(
-                        script: '''
+                    try {
+                        sh '''
                             if [ -f mvnw ]; then
                                 chmod +x mvnw
-                                ./mvnw test -Dtest=AdminAddBookTest -Pselenium -DfailIfNoTests=false 2>&1 || echo "TEST_FAILED"
+                                echo "Selenium testleri derleniyor ve çalıştırılıyor..."
+                                ./mvnw test-compile test -Dtest=AdminAddBookTest -Pselenium -DfailIfNoTests=false
                             elif command -v mvn &> /dev/null; then
-                                mvn test -Dtest=AdminAddBookTest -Pselenium -DfailIfNoTests=false 2>&1 || echo "TEST_FAILED"
+                                echo "Selenium testleri derleniyor ve çalıştırılıyor..."
+                                mvn test-compile test -Dtest=AdminAddBookTest -Pselenium -DfailIfNoTests=false
                             else
                                 echo "Maven bulunamadı, Selenium testleri atlanıyor..."
-                                echo "TEST_SKIPPED"
+                                exit 0
                             fi
-                        ''',
-                        returnStatus: true
-                    )
-                    if (testResult != 0) {
-                        echo "⚠️ Selenium test başarısız (opsiyonel - pipeline devam ediyor)"
+                        '''
+                    } catch (Exception e) {
+                        echo "⚠️ Selenium test hatası (Senaryo 2): ${e.getMessage()}"
+                        echo "Pipeline devam ediyor..."
                     }
                 }
             }
@@ -270,24 +270,24 @@ pipeline {
         stage('Selenium Tests - Senaryo 3') {
             steps {
                 echo '=== 6.3. Selenium Test Senaryosu 3: Kullanıcı Kitap İade ==='
-                echo 'NOT: Selenium testleri opsiyoneldir. Hata olsa bile pipeline devam eder.'
                 script {
-                    def testResult = sh(
-                        script: '''
+                    try {
+                        sh '''
                             if [ -f mvnw ]; then
                                 chmod +x mvnw
-                                ./mvnw test -Dtest=UserReturnBookTest -Pselenium -DfailIfNoTests=false 2>&1 || echo "TEST_FAILED"
+                                echo "Selenium testleri derleniyor ve çalıştırılıyor..."
+                                ./mvnw test-compile test -Dtest=UserReturnBookTest -Pselenium -DfailIfNoTests=false
                             elif command -v mvn &> /dev/null; then
-                                mvn test -Dtest=UserReturnBookTest -Pselenium -DfailIfNoTests=false 2>&1 || echo "TEST_FAILED"
+                                echo "Selenium testleri derleniyor ve çalıştırılıyor..."
+                                mvn test-compile test -Dtest=UserReturnBookTest -Pselenium -DfailIfNoTests=false
                             else
                                 echo "Maven bulunamadı, Selenium testleri atlanıyor..."
-                                echo "TEST_SKIPPED"
+                                exit 0
                             fi
-                        ''',
-                        returnStatus: true
-                    )
-                    if (testResult != 0) {
-                        echo "⚠️ Selenium test başarısız (opsiyonel - pipeline devam ediyor)"
+                        '''
+                    } catch (Exception e) {
+                        echo "⚠️ Selenium test hatası (Senaryo 3): ${e.getMessage()}"
+                        echo "Pipeline devam ediyor..."
                     }
                 }
             }

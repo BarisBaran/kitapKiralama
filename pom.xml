@@ -164,6 +164,18 @@
                 </configuration>
             </plugin>
             
+            <!-- Maven Compiler Plugin - Selenium testlerini exclude et -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <testExcludes>
+                        <exclude>**/selenium/**/*.java</exclude>
+                    </testExcludes>
+                </configuration>
+            </plugin>
+
             <!-- Surefire Plugin for Unit Tests -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -174,6 +186,9 @@
                         <include>**/*Test.java</include>
                         <include>**/*Tests.java</include>
                     </includes>
+                    <excludes>
+                        <exclude>**/selenium/**/*.java</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
 
